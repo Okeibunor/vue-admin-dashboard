@@ -54,7 +54,7 @@ export default {
       //slack api logic
       let slackUrl = new URL("https://slack.com/api/chat.postMessage");
       const data = {
-        token: "xoxb-1816013330897-1803390087922-03v41kEissBUzlLwpfHJTTAI",
+        token: process.env.slackToken,
         channel: "admin-dashboard",
         text: `${email} has requested admin access. Kindly invite them via Netlify`,
       };
