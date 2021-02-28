@@ -3,37 +3,33 @@
     class="container"
     :class="{ 'light-background': !isDarkMode, 'dark-background': isDarkMode }"
   >
-    <transition
-      name="slide-in-right"
-      enter-active-class="animate__animated animate__slideInRight"
-    >
-      <div
-        v-show="show"
-        class="request"
-        :class="{ 'light-request': isDarkMode, 'dark-request': !isDarkMode }"
-      >
-        Don't have a Design+Code HQ account?
-        <router-link to="signup">Request an account</router-link>
-      </div>
-    </transition>
-
+    <RequestAccess />
+    <Notification :text="text" v-if="hasText" />
     <div class="login">
       <img v-show="isDarkMode" src="@/assets/logo.svg" />
       <img v-show="!isDarkMode" src="@/assets/logo-dark.svg" />
       <h4 :class="{ 'light-text': isDarkMode, 'dark-text': !isDarkMode }">
         Sign into Design+Code HQ
       </h4>
-      <input
-        :class="{ 'light-field': isDarkMode, 'dark-field': !isDarkMode }"
-        type="email"
-        placeholder="Email"
-      />
-      <input
-        :class="{ 'light-field': isDarkMode, 'dark-field': !isDarkMode }"
-        type="password"
-        placeholder="Password"
-      />
-      <button>Sign In</button>
+      <form @submit.prevent="onSubmit">
+        <input
+          requireds
+          aria-required="true"
+          :class="{ 'light-field': isDarkMode, 'dark-field': !isDarkMode }"
+          type="email"
+          placeholder="Email"
+          v-model="email"
+        />
+        <input
+          required
+          aria-required="true"
+          :class="{ 'light-field': isDarkMode, 'dark-field': !isDarkMode }"
+          type="password"
+          placeholder="Password"
+          v-model="password"
+        />
+        <button type="submit">Sign In</button>
+      </form>
       <router-link
         :class="{ 'light-link': isDarkMode, 'dark-link': !isDarkMode }"
         to="/recover"
@@ -45,19 +41,55 @@
 </template>
 
 <script>
+import RequestAccess from "@/components/RequestAccess";
+import Notification from "@/components/Notification";
 import ThemeSwitch from "@/components/ThemeSwitch";
+import { auth } from "@/main";
+
 export default {
   name: "Signin",
   data() {
     return {
-      show: false,
+      email: null,
+      password: null,
+      error: null,
+      hasText: false,
+      text: "",
     };
   },
   components: {
     ThemeSwitch,
+    Notification,
+    RequestAccess,
+  },
+  methods: {
+    onSubmit() {
+      const email = this.email;
+      const password = this.password;
+
+      auth
+        .login(email, password, true)
+        .then((response) => {
+          const authData = response;
+          localStorage.setItem("authData", JSON.stringify(authData));
+          this.$router.replace("/");
+        })
+        .catch((error) => (this.error = error));
+    },
   },
   mounted() {
-    this.show = true;
+    const params = this.$route.params;
+
+    if (params.userLoggedOut) {
+      this.hasText = true;
+      this.text = "You have logged out";
+    } else if (params.userRecoveredAccount) {
+      this.hasText = true;
+      this.text = `A recovery email has been sent to ${params.email}`;
+    } else if (params.userRequestedAccount) {
+      this.hasText = true;
+      this.text = `Your request has been sent to an administrator for ${params.email}`;
+    }
   },
   computed: {
     isDarkMode: function () {
@@ -73,6 +105,7 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 40px 0;
 }
 .login {
   width: 400px;

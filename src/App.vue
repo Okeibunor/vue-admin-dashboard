@@ -35,7 +35,6 @@ p {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: $white;
-
   a {
     font-weight: bold;
     color: $white;
@@ -116,6 +115,8 @@ button {
   font-size: 20px;
   color: white;
   margin-bottom: 40px;
+
+  cursor: pointer;
 
   &:focus {
     outline: none;
